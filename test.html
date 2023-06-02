@@ -1,0 +1,51 @@
+<button onclick="openWindow()">Open Auth Window</button>
+
+<script>
+function getBIToken(){
+    let BIToken
+    fetch('https://app.sandbox.datazip.io/api/v1/security/login', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            "password": "sandbox_8fbbff568d9fc0dc3def",
+            "provider": "db",
+            "refresh": true,
+            "username": "sandbox_93bc63e0"
+        })
+        })
+        .then(response => response.json())
+        .then(data => {
+        BIToken = data;
+        console.log(`Received login token: ${loginToken}`);
+        })
+        .catch(error => {
+        console.error(`Error during login: ${error}`);
+        });
+    return BIToken
+}
+getBIToken()
+function openWindow() {
+  
+  const url = 'http://localhost:7070/api/oauth/airbyte-source-facebook-marketing/init?payload=';
+  const name = 'authWindow';
+  const features = 'height=600,width=800,resizable=yes';
+  const authWindow = window.open(url, name, features);
+
+  window.addEventListener('message', receiveMessage);
+
+  function receiveMessage(event) {
+    if (event.origin !== 'http://localhost:7070') {
+      return;
+    }
+
+    if (event.data.type === 'auth_success') {
+      const accessToken = event.data.accessToken;
+      console.log(`Received access token: ${accessToken}`);
+      authWindow.close();
+      window.removeEventListener('message', receiveMessage);
+    }
+  }
+}
+</script>
